@@ -1,0 +1,8 @@
+%{
+  "asn1": {:git, "https://github.com/exdns/asn1.git", "428e9cbb61da9063ba597e95a543d43e6deb4afe", []},
+  "erlbase32": {:git, "https://github.com/exdns/erlbase32.git", "c71794f522a3ee542823258fafd7c0332e76d383", []},
+  "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
+  "mcc": {:hex, :mcc, "1.2.0", "01bb30abf1cc303c2f71ef654b714a628a68bd1c70f6f4e41557a479e7c4f558", [:mix], [], "hexpm"},
+  "recase": {:hex, :recase, "0.4.0", "8fb52846f75948156385af2dfdc12f69e5ce27b022a9d1682c70a2fb3ed149c7", [:mix], [], "hexpm"},
+  "typed_struct": {:hex, :typed_struct, "0.1.4", "25971ce73a8b336dedf2f80e4dafaab111af127ba4773955b66805c89e197f6a", [:mix], [], "hexpm"},
+}
