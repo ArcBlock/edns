@@ -9,24 +9,22 @@ defmodule Edns.Resolver do
   @doc """
 
   """
-  def resolve(%{questions: []} = message, _authority, _host), do: message
-
-  def resolve(%{questions: [q | _]} = message, authority, host) do
-    case q do
-      %{type: @dns_type_rrsig} ->
-        %{message | ra: false, ad: false, cd: false, rc: @dns_rcode_refused}
-
-      %{type: type, name: name} ->
-        zone = Edns.Zone.find(name, List.last(authority))
-
-        %{message | ra: false, ad: false, cd: false}
-        |> Context.build(name, type, zone)
-        |> Zone.resolve([])
-        |> rewrite_soa_ttl()
-        |> additional_processing(host, zone)
-        |> sort_answers()
-    end
+  def resolve(%{questions: [%{type: @dns_type_rrsig} | _]} = message, _, _) do
+    %{message | ra: false, ad: false, cd: false, rc: @dns_rcode_refused}
   end
+
+  def resolve(%{questions: [%{type: type, name: name} | _]} = message, authority, host) do
+    zone = Edns.Zone.find(name, List.last(authority))
+
+    %{message | ra: false, ad: false, cd: false}
+    |> Context.build(name, type, zone)
+    |> Zone.resolve([])
+    |> rewrite_soa_ttl()
+    |> additional_processing(host, zone)
+    |> sort_answers()
+  end
+
+  def resolve(message, _, _), do: message
 
   @doc false
   defp rewrite_soa_ttl(message) do
@@ -45,8 +43,6 @@ defmodule Edns.Resolver do
   defp minimum_soa_ttl(r, %{__struct__: DnsRrdataSoa} = data) do
     %{r | ttl: min(data.minimum, r.ttl)}
   end
-
-  defp minimum_soa_ttl(r, _), do: r
 
   @doc false
   defp additional_processing(message, _host, _zone) do

@@ -16,10 +16,6 @@ defmodule Edns.Config do
   end
 
   @doc false
-  defp parse_address(address) when is_tuple(address) do
-    address
-  end
-
   defp parse_address(address) when is_bitstring(address) do
     address
     |> String.to_charlist()

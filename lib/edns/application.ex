@@ -5,7 +5,6 @@ defmodule Edns.Application do
 
   def start(_type, _args) do
     children = [Edns.Server.Sup]
-
     opts = [strategy: :one_for_one, name: Edns.Supervisor]
     Supervisor.start_link(children, opts)
   end
