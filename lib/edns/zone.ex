@@ -150,9 +150,9 @@ defmodule Edns.Zone do
   end
 
   @doc false
-  def get([]), do: get("")
+  defp get([]), do: get("")
 
-  def get(query_name) do
+  defp get(query_name) do
     query_name = String.downcase(query_name)
     get(query_name, :dns.dname_to_labels(query_name))
   end
