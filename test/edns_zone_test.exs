@@ -24,7 +24,7 @@ defmodule EdnsZoneTest do
              serial: 2_000_081_501
            },
            name: "withzonecut.com",
-           ttl: 100_000,
+           ttl: 86400,
            type: SOA
          }
        ]}
@@ -65,7 +65,7 @@ defmodule EdnsZoneTest do
                  serial: 2_000_081_501
                },
                name: "withzonecut.com",
-               ttl: 100_000,
+               ttl: 86400,
                type: SOA
              },
              %DnsRr{
@@ -149,7 +149,7 @@ defmodule EdnsZoneTest do
             serial: 2_000_081_501
           },
           name: "withzonecut.com",
-          ttl: 100_000,
+          ttl: 86400,
           type: SOA
         }
       ],

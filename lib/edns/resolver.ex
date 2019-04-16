@@ -44,6 +44,8 @@ defmodule Edns.Resolver do
     %{r | ttl: min(data.minimum, r.ttl)}
   end
 
+  defp minimum_soa_ttl(r, _), do: r
+
   @doc false
   defp additional_processing(message, _host, _zone) do
     message

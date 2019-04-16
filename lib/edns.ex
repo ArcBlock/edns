@@ -14,10 +14,21 @@ defmodule Edns do
     bin
     |> :dns.decode_message()
     |> Dnsm.from_record()
+    |> decode_rr_type()
   catch
     _, e ->
       Logger.error("Error decoding, message: #{inspect(bin)}, error: #{inspect(e)}")
       {:formeer, e, bin}
+  end
+
+  @doc false
+  defp decode_rr_type(%{questions: questions} = message) do
+    %{message | questions: Enum.map(questions, &decode_rr_type_do/1)}
+  end
+
+  @doc false
+  defp decode_rr_type_do(%{type: type} = r) do
+    %{r | type: Edns.Type.decode(type)}
   end
 
   @doc """
@@ -72,11 +83,12 @@ defmodule Edns do
   end
 
   @doc false
-  defp encode_rr_type(%{answers: answers, authority: authority} = message) do
+  defp encode_rr_type(%{answers: answers, authority: authority, questions: questions} = message) do
     %{
       message
-      | answers: Enum.map(answers, fn r -> encode_rr_type_do(r) end),
-        authority: Enum.map(authority, fn r -> encode_rr_type_do(r) end),
+      | answers: Enum.map(answers, &encode_rr_type_do/1),
+        authority: Enum.map(authority, &encode_rr_type_do/1),
+        questions: Enum.map(questions, &encode_rr_type_do/1),
         additional: []
     }
   end

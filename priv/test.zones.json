@@ -344,6 +344,18 @@
                 "data": "ns2.test.com"
             },
             {
+                "name": "test.com",
+                "type": "NS",
+                "ttl": 3600,
+                "data": "test.com"
+            },
+            {
+                "name": "test.com",
+                "type": "A",
+                "ttl": 3600,
+                "data": "192.168.6.11"
+            },
+            {
                 "name": "ns1.test.com",
                 "type": "A",
                 "ttl": 3600,
