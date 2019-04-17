@@ -23,7 +23,7 @@ defmodule Edns.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dnsm, path: "../dnsm"},
+      {:dnsm, github: "exdns/dnsm"},
       {:jason, "~> 1.1"},
       {:mcc, "~> 1.2"},
       {:typed_struct, "~> 0.1.4"},
