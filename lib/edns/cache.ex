@@ -7,6 +7,8 @@ defmodule Edns.Cache do
 
   import_table(Edns.Zone.Cache.Exp)
   import_table(Edns.Zone.Cache)
+  import_table(Edns.Handler.Cache.Exp)
+  import_table(Edns.Handler.Cache)
 
   # __end_of_module__
 end

@@ -10,7 +10,7 @@ defmodule Edns.Server.Udp do
   @default_udp_recbuf 1024 * 1024
 
   def start_link(%{id: id} = args) do
-    GenServer.start_link(__MODULE__, args, name: id, hibernate_after: 0)
+    GenServer.start_link(__MODULE__, args, name: id, hibernate_after: 100)
   end
 
   def worker_pool do

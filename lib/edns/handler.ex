@@ -1,6 +1,8 @@
 defmodule Edns.Handler do
   @moduledoc false
 
+  alias Edns.Handler.Cache
+
   @dns_rcode_refused 5
 
   @doc """
@@ -16,8 +18,10 @@ defmodule Edns.Handler do
 
   @doc false
   defp handle_message(message, host) do
-    # {message.questions, message.additional} as key
-    handle_cache_miss(message, get_authority(message), host)
+    case Cache.get_with_ttl({message.questions, message.additional}) do
+      nil -> handle_cache_miss(message, get_authority(message), host)
+      resp -> %{resp | id: message.id}
+    end
   end
 
   @doc false
@@ -32,6 +36,7 @@ defmodule Edns.Handler do
 
   @doc false
   defp maybe_cache(res, true) do
+    Cache.put_with_ttl({res.questions, res.additional}, res)
     res
   end
 

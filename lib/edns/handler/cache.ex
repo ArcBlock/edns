@@ -1,4 +1,4 @@
-defmodule Edns.Zone.Cache.Exp do
+defmodule Edns.Handler.Cache.Exp do
   @moduledoc false
 
   use Mcc.Model.Table,
@@ -13,10 +13,10 @@ defmodule Edns.Zone.Cache.Exp do
   defstruct [:key, :value]
 end
 
-defmodule Edns.Zone.Cache do
+defmodule Edns.Handler.Cache do
   @moduledoc false
 
-  alias Edns.Zone.Cache.Exp, as: ZoneExp
+  alias Edns.Handler.Cache.Exp, as: HandlerExp
 
   use Mcc.Model.Table,
     table_opts: [
@@ -27,7 +27,7 @@ defmodule Edns.Zone.Cache do
       ]
     ],
     expiration_opts: [
-      expiration_table: ZoneExp,
+      expiration_table: HandlerExp,
       main_table: __MODULE__,
       size_limit: 100,
       # 300M
@@ -36,19 +36,17 @@ defmodule Edns.Zone.Cache do
       check_interval: 1_000
     ]
 
-  defstruct([:name, :zone], true)
+  defstruct([:key, :value], true)
 
   def get_with_ttl(k) do
     case get(k) do
-      %{name: ^k, zone: zone} -> zone
+      %{key: ^k, value: value} -> value
       _ -> nil
     end
   end
 
-  def put_with_ttl(_k, v, 0), do: v
-
-  def put_with_ttl(k, v, ttl) do
-    put(k, %__MODULE__{name: k, zone: v}, ttl)
+  def put_with_ttl(k, v, ttl \\ 10) do
+    put(k, %__MODULE__{key: k, value: v}, ttl)
     v
   end
 

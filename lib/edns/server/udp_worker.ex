@@ -4,7 +4,7 @@ defmodule Edns.Server.UdpWorker do
   use GenServer
 
   def start_link(_) do
-    GenServer.start_link(__MODULE__, nil, hibernate_after: 0)
+    GenServer.start_link(__MODULE__, nil, hibernate_after: 100)
   end
 
   def handle_request(worker_pid, socket, host, port, bin) do
