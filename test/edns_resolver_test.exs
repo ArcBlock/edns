@@ -5,6 +5,7 @@ defmodule EdnsResolverTest do
 
   @dns_type_a A
   @dns_type_ns NS
+  @dns_type_cname CNAME
   # @dns_type_any ANY
   @host "127.0.0.1"
 
@@ -169,6 +170,106 @@ defmodule EdnsResolverTest do
 
     assert [%DnsRr{data: %DnsRrdataNs{dname: "ns-test.example.net.test.com"}, type: NS}] =
              Resolver.resolve(message, authority, @host).answers
+  end
+
+  # {
+  #     "name": "start1.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "start2.example.com"
+  # },
+  # {
+  #     "name": "start2.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "start3.example.com"
+  # },
+  # {
+  #     "name": "start3.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "start4.example.com"
+  # },
+  # {
+  #     "name": "start4.example.com",
+  #     "type": "A",
+  #     "ttl": 120,
+  #     "data": "192.168.2.2"
+  # },
+  test "resolve exact cname 1" do
+    name = "start3.example.com"
+    message = build_query_message(@dns_type_cname, name)
+    {:ok, authority} = Zone.get_authority(name)
+
+    assert [
+             %DnsRr{
+               data: %DnsRrdataCname{dname: "start4.example.com"},
+               name: "start3.example.com",
+               type: CNAME
+             }
+           ] = Resolver.resolve(message, authority, @host).answers
+  end
+
+  test "resolve exact cname 2" do
+    name = "start3.example.com"
+    message = build_query_message(@dns_type_a, name)
+    {:ok, authority} = Zone.get_authority(name)
+
+    assert [
+             %DnsRr{
+               data: %DnsRrdataCname{dname: "start4.example.com"},
+               name: "start3.example.com",
+               type: CNAME
+             },
+             %DnsRr{
+               data: %DnsRrdataA{ip: {192, 168, 2, 2}},
+               name: "start4.example.com",
+               type: A
+             }
+           ] = Resolver.resolve(message, authority, @host).answers
+  end
+
+  # {
+  #     "name": "loop1.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "loop2.example.com"
+  # },
+  # {
+  #     "name": "loop2.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "loop3.example.com"
+  # },
+  # {
+  #     "name": "loop3.example.com",
+  #     "type": "CNAME",
+  #     "ttl": 120,
+  #     "data": "loop1.example.com"
+  # },
+
+  test "resolve exact cname loop" do
+    name = "loop1.example.com"
+    message = build_query_message(@dns_type_a, name)
+    {:ok, authority} = Zone.get_authority(name)
+
+    assert [
+             %DnsRr{
+               data: %DnsRrdataCname{dname: "loop2.example.com"},
+               name: "loop1.example.com",
+               type: CNAME
+             },
+             %DnsRr{
+               data: %DnsRrdataCname{dname: "loop3.example.com"},
+               name: "loop2.example.com",
+               type: CNAME
+             },
+             %DnsRr{
+               data: %DnsRrdataCname{dname: "loop1.example.com"},
+               name: "loop3.example.com",
+               type: CNAME
+             }
+           ] = Resolver.resolve(message, authority, @host).answers
   end
 
   defp build_query_message(type, name) do
