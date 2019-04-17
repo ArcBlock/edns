@@ -5,7 +5,7 @@ defmodule Edns.Resolver.Zone do
 
   @dns_rcode_nxdomain 3
 
-  alias Edns.Resolver.{Best, Exact}
+  alias Edns.Resolver.Exact
   alias Edns.Zone
 
   @doc """

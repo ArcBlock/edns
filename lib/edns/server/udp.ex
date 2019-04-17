@@ -5,25 +5,40 @@ defmodule Edns.Server.Udp do
 
   require Logger
 
+  alias Edns.Server.UdpWorker
+
   @default_udp_recbuf 1024 * 1024
 
   def start_link(%{id: id} = args) do
-    GenServer.start_link(__MODULE__, args, name: id)
+    GenServer.start_link(__MODULE__, args, name: id, hibernate_after: 0)
   end
 
-  def init(%{address: address, port: port, family: family}) do
-    {:ok, socket} = start(address, port, family)
+  def worker_pool do
+    [
+      {:name, {:local, worker_pool_name()}},
+      {:worker_module, UdpWorker},
+      {:size, System.schedulers_online() * 8},
+      {:max_overflow, System.schedulers_online() * 8}
+    ]
+  end
+
+  def worker_pool_name do
+    Edns.Server.Udp.WorkerPool
+  end
+
+  def init(%{address: address, port: port, family: family} = args) do
+    {:ok, socket} = start(address, port, family, Map.get(args, :socket_options, []))
     {:ok, %{address: address, port: port, socket: socket}}
   end
 
   def handle_info({:udp, socket, host, port, bin}, %{socket: socket} = state) do
-    new_state = handle_request(socket, host, port, bin, state)
+    handle_request(socket, host, port, bin)
     :inet.setopts(socket, active: 100)
-    {:noreply, new_state}
+    {:noreply, state}
   end
 
   @doc false
-  defp start(address, port, family) do
+  defp start(address, port, family, socket_options) do
     case(
       :gen_udp.open(port, [
         :binary,
@@ -32,7 +47,7 @@ defmodule Edns.Server.Udp do
         {:read_packets, 1000},
         {:ip, address},
         {:recbuf, @default_udp_recbuf},
-        family
+        family | socket_options
       ])
     ) do
       {:ok, socket} ->
@@ -46,38 +61,13 @@ defmodule Edns.Server.Udp do
   end
 
   @doc false
-  defp handle_request(socket, host, port, bin, state) do
-    case Edns.decode_message(bin) do
-      {:trailing_garbage, decoded_message, _} ->
-        handle_process(decoded_message, socket, port, {:udp, host})
-
-      {_, _, _} ->
-        :ok
-
-      decoded_message ->
-        handle_process(decoded_message, socket, port, {:udp, host})
-    end
-
-    state
-  end
-
-  @doc false
-  defp handle_process(decoded_message, socket, port, {:udp, host}) do
-    resp = Edns.Handler.handle(decoded_message, {:udp, host})
-
-    case Edns.encode_message(resp, max_size: 4096) do
-      {false, encoded_msg} ->
-        :gen_udp.send(socket, host, port, encoded_msg)
-
-      {true, encoded_msg, %{__struct__: DnsMessage} = _message} ->
-        :gen_udp.send(socket, host, port, encoded_msg)
-
-      {false, encoded_msg, _} ->
-        :gen_udp.send(socket, host, port, encoded_msg)
-
-      {true, encoded_msg, _, _} ->
-        :gen_udp.send(socket, host, port, encoded_msg)
-    end
+  defp handle_request(socket, host, port, bin) do
+    spawn(fn ->
+      :poolboy.transaction(
+        worker_pool_name(),
+        fn pid -> UdpWorker.handle_request(pid, socket, host, port, bin) end
+      )
+    end)
   end
 
   # __end_of_module__

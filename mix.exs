@@ -27,6 +27,7 @@ defmodule Edns.MixProject do
       {:jason, "~> 1.1"},
       {:mcc, "~> 1.2"},
       {:typed_struct, "~> 0.1.4"},
+      {:poolboy, "~> 1.5"},
       {:excoveralls, "~> 0.10.6", only: [:test]}
     ]
   end

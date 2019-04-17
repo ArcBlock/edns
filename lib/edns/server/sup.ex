@@ -33,17 +33,31 @@ defmodule Edns.Server.Sup do
     res
   end
 
-  # defp define_server(server, 1, []) do
-  #   id = String.to_atom("Edns.Server.Udp.1")
-  #   %{id: id, start: {Udp, :start_link, [Map.put(server, :id, id)]}}
-  # end
+  defp define_server(%{name: name} = server, 1 = n, []) do
+    id = String.to_atom("Edns.Server.Udp.#{name}.#{n}")
+    %{id: id, start: {Udp, :start_link, [Map.put(server, :id, id)]}}
+  end
 
   defp define_server(%{name: name} = server, n, res) do
     id = String.to_atom("Edns.Server.Udp.#{name}.#{n}")
 
+    args =
+      server
+      |> Map.put(:id, id)
+      |> Map.put(:socket_options, socket_options())
+
     define_server(server, n - 1, [
-      Supervisor.child_spec({Udp, Map.put(server, :id, id)}, id: id) | res
+      Supervisor.child_spec({Udp, args}, id: id) | res
     ])
+  end
+
+  @doc false
+  defp socket_options do
+    case :os.type() do
+      {:unix, :linux} -> [{:raw, 1, 15, <<1, 0, 0, 0>>}]
+      {:unix, :darwin} -> [{:raw, 65535, 512, <<1, 0, 0, 0>>}]
+      _ -> []
+    end
   end
 
   # __end_of_module__
